@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tarot Learner – 2‑word keywords</title>
+  <style>
+    :root{--bg:#ffffff;--panel:#f4f6fa;--ink:#1a1a1a;--muted:#666;--accent:#3366cc;--card:#ffffff;--line:#ddd}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+    header h1{margin:0;font-size:16px;font-weight:700;letter-spacing:.2px}
+    .wrap{display:grid;grid-template-columns:260px 1fr;min-height:calc(100dvh - 52px)}
+    aside{border-right:1px solid var(--line);background:var(--panel);padding:12px;position:sticky;top:52px;height:calc(100dvh - 52px);overflow:auto}
+    .group{margin-bottom:14px}
+    .group h3{margin:10px 0 6px;font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+    .btn{width:100%;text-align:left;background:transparent;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:10px;margin:6px 0;cursor:pointer}
+    .btn[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent),transparent 70%)}
+    main{padding:16px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+    .switch{display:inline-flex;align-items:center;gap:8px}
+    .switch input{appearance:none;width:46px;height:26px;border-radius:999px;background:#ccc;position:relative;outline:none;cursor:pointer}
+    .switch input:checked{background:var(--accent)}
+    .switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s}
+    .switch input:checked::after{transform:translateX(20px)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+    .badge{font-size:11px;color:var(--muted)}
+    .title{font-weight:700}
+    .kw{display:flex;gap:6px;flex-wrap:wrap}
+    .tag{font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+    .muted{color:var(--muted)}
+    .search{flex:1;min-width:220px}
+    .search input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+    footer{padding:12px 16px;color:var(--muted)}
+    .note{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tarot Learner — Upright / Reversed (2 words)</h1>
+    <div class="switch" title="Show reversed meanings">
+      <label class="muted">Reversed</label>
+      <input id="revToggle" type="checkbox" />
+    </div>
+  </header>
+  <div class="wrap">
+    <aside>
+      <div class="group">
+        <h3>Lists</h3>
+        <button class="btn" data-list="major" aria-current="true">Major Arcana</button>
+        <button class="btn" data-list="wands">Wands</button>
+        <button class="btn" data-list="cups">Cups</button>
+        <button class="btn" data-list="swords">Swords</button>
+        <button class="btn" data-list="pentacles">Pentacles</button>
+      </div>
+      <div class="group">
+        <h3>Find</h3>
+        <div class="search"><input id="q" placeholder="Search name or keyword…"/></div>
+      </div>
+      <div class="group">
+        <p class="note">Tip: Toggle <b>Reversed</b> to study inverted meanings. Use the list buttons to focus on one suit or the majors.</p>
+      </div>
+    </aside>
+    <main>
+      <div class="toolbar">
+        <div class="muted" id="count"></div>
+      </div>
+      <section class="grid" id="grid" aria-live="polite"></section>
+    </main>
+  </div>
+  <footer>
+    <span class="note">Keywords are concise study prompts. Adjust to your tradition as you learn.</span>
+  </footer>
+
+<script>
+const DATA = {
+  major: [
+    C('0 The Fool','new start','reckless folly'),
+    C('I The Magician','will focus','trickery scatter'),
+    C('II The High Priestess','inner knowing','secrets confusion'),
+    C('III The Empress','nurture growth','smother stagnation'),
+    C('IV The Emperor','structure authority','rigidity control'),
+    C('V The Hierophant','tradition guidance','dogma rebellion'),
+    C('VI The Lovers','choice union','misalignment temptation'),
+    C('VII The Chariot','drive victory','force derailment'),
+    C('VIII Strength','courage patience','doubt impulse'),
+    C('IX The Hermit','solitude insight','isolation withdrawal'),
+    C('X Wheel of Fortune','cycles change','resistance downturn'),
+    C('XI Justice','truth balance','bias injustice'),
+    C('XII The Hanged Man','surrender perspective','stall martyrdom'),
+    C('XIII Death','ending transformation','clinging stagnation'),
+    C('XIV Temperance','moderation harmony','excess imbalance'),
+    C('XV The Devil','bondage materialism','release awareness'),
+    C('XVI The Tower','sudden upheaval','avoidable denial'),
+    C('XVII The Star','hope renewal','doubt discouragement'),
+    C('XVIII The Moon','intuition mystery','fear deception'),
+    C('XIX The Sun','vitality success','ego pessimism'),
+    C('XX Judgment','awakening reckoning','avoidance self‑doubt'),
+    C('XXI The World','completion integration','incomplete delay'),
+  ],
+  wands: [
+    C('Ace of Wands','spark potential','block delay'),
+    C('Two of Wands','planning scope','fear comfort'),
+    C('Three of Wands','expansion foresight','setbacks shortsight'),
+    C('Four of Wands','celebration home','instability discord'),
+    C('Five of Wands','competition friction','avoidance all‑talk'),
+    C('Six of Wands','recognition triumph','ego fall'),
+    C('Seven of Wands','defense courage','overwhelm exhaustion'),
+    C('Eight of Wands','movement speed','stall misfire'),
+    C('Nine of Wands','resilience boundaries','paranoia burnout'),
+    C('Ten of Wands','burden overload','release delegation'),
+    C('Page of Wands','curious spark','aimless tantrum'),
+    C('Knight of Wands','bold pursuit','impulsive scatter'),
+    C('Queen of Wands','magnetic confidence','jealous insecurity'),
+    C('King of Wands','vision leadership','domineering rash'),
+  ],
+  cups: [
+    C('Ace of Cups','love opening','block emptiness'),
+    C('Two of Cups','union rapport','imbalance breakup'),
+    C('Three of Cups','friendship joy','overindulgence exclusion'),
+    C('Four of Cups','apathy reevaluation','opportunity awareness'),
+    C('Five of Cups','grief regret','acceptance recovery'),
+    C('Six of Cups','nostalgia kindness','stuck naivety'),
+    C('Seven of Cups','choices fantasy','clarity realism'),
+    C('Eight of Cups','departure seeking','avoidance fear'),
+    C('Nine of Cups','satisfaction wish','complacency indulgence'),
+    C('Ten of Cups','harmony fulfillment','misaligned disharmony'),
+    C('Page of Cups','dreamy message','immature moodiness'),
+    C('Knight of Cups','romance idealism','flattery inconsistency'),
+    C('Queen of Cups','compassion intuition','smothering hypersensitivity'),
+    C('King of Cups','emotional mastery','manipulation volatility'),
+  ],
+  swords: [
+    C('Ace of Swords','clarity truth','confusion hostility'),
+    C('Two of Swords','stalemate choice','indecision denial'),
+    C('Three of Swords','heartbreak sorrow','release forgiveness'),
+    C('Four of Swords','rest recovery','restlessness burnout'),
+    C('Five of Swords','conflict defeat','reconciliation lesson'),
+    C('Six of Swords','transition passage','stagnation baggage'),
+    C('Seven of Swords','strategy stealth','exposure self‑deceit'),
+    C('Eight of Swords','restriction fear','liberation perspective'),
+    C('Nine of Swords','anxiety nightmare','relief perspective'),
+    C('Ten of Swords','ending collapse','regeneration resilience'),
+    C('Page of Swords','inquisitive alert','gossip haste'),
+    C('Knight of Swords','decisive charge','reckless cruelty'),
+    C('Queen of Swords','perceptive independence','cold bitterness'),
+    C('King of Swords','logic authority','tyranny rigidity'),
+  ],
+  pentacles: [
+    C('Ace of Pentacles','opportunity seed','delay scarcity'),
+    C('Two of Pentacles','balance adaptability','overwhelm disarray'),
+    C('Three of Pentacles','teamwork craft','disharmony mediocrity'),
+    C('Four of Pentacles','security control','greed fear'),
+    C('Five of Pentacles','loss hardship','recovery assistance'),
+    C('Six of Pentacles','giving receiving','strings imbalance'),
+    C('Seven of Pentacles','patience assessment','impatience waste'),
+    C('Eight of Pentacles','practice mastery','monotony shortcut'),
+    C('Nine of Pentacles','independence comfort','overreach dependence'),
+    C('Ten of Pentacles','legacy stability','fleeting conflict'),
+    C('Page of Pentacles','student diligence','laziness distraction'),
+    C('Knight of Pentacles','steady reliability','stagnant stubbornness'),
+    C('Queen of Pentacles','nurturing practicality','smothering imbalance'),
+    C('King of Pentacles','wealth discipline','greed rigidity'),
+  ],
+};
+
+function C(name, u, r){
+  return {name, upright: u.split(/\s+/).slice(0,2), reversed: r.split(/\s+/).slice(0,2)};
+}
+
+const state = {
+  list: 'major',
+  reversed: JSON.parse(localStorage.getItem('revToggle')||'false'),
+  query: ''
+};
+
+const grid = document.getElementById('grid');
+const countEl = document.getElementById('count');
+const revToggle = document.getElementById('revToggle');
+const q = document.getElementById('q');
+
+for (const btn of document.querySelectorAll('.btn[data-list]')){
+  btn.addEventListener('click', () => {
+    state.list = btn.dataset.list;
+    document.querySelectorAll('.btn[data-list]').forEach(b=>b.setAttribute('aria-current', String(b===btn)));
+    render();
+  })
+}
+
+revToggle.checked = state.reversed;
+revToggle.addEventListener('change', () => {
+  state.reversed = revToggle.checked;
+  localStorage.setItem('revToggle', JSON.stringify(state.reversed));
+  render();
+});
+
+q.addEventListener('input', () => { state.query = q.value.trim().toLowerCase(); render(); });
+
+function allCardsOf(list){
+  return DATA[list] || [];
+}
+
+function render(){
+  const cards = allCardsOf(state.list).filter(card => {
+    if(!state.query) return true;
+    const hay = [card.name.toLowerCase(), ...card.upright, ...card.reversed].join(' ');
+    return hay.includes(state.query);
+  });
+
+  grid.innerHTML = cards.map(c => CardHTML(c, state.reversed)).join('');
+  countEl.textContent = `${titleFor(state.list)} — ${cards.length} cards`;
+}
+
+function CardHTML(card, reversed){
+  const show = reversed ? card.reversed : card.upright;
+  const [k1,k2] = show;
+  return `<article class="card">
+    <div class="badge">${groupOf(card.name)}</div>
+    <div class="title">${card.name}</div>
+    <div class="kw"><span class="tag">${k1}</span><span class="tag">${k2}</span></div>
+    <div class="muted">${reversed?'Reversed':'Upright'}</div>
+  </article>`;
+}
+
+function groupOf(name){
+  if(name.includes('of Wands')) return 'Wands';
+  if(name.includes('of Cups')) return 'Cups';
+  if(name.includes('of Swords')) return 'Swords';
+  if(name.includes('of Pentacles')) return 'Pentacles';
+  return 'Major Arcana';
+}
+function titleFor(list){
+  return list==='major'?'Major Arcana':list[0].toUpperCase()+list.slice(1);
+}
+
+render();
+</script>
+</body>
+</html>
